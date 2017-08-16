@@ -1,0 +1,19 @@
+---
+- name: wordpress_db container
+  docker:
+    name: wordpress_db
+    image: mariadb
+    state: started
+    expose:
+    - "3306"
+    env:
+        MYSQL_ROOT_PASSWORD: ChangeMe
+ 
+- name: wordpress container
+  docker:
+    name: wordpress
+    image: wordpress
+    links:
+    - "wordpress_db:mysql"
+    ports:
+    - "127.0.0.1:8888:80"

@@ -1,0 +1,20 @@
+---
+# ansible-playbook terminate.yml -e "instance_ids=i-xxxxxx group_id=sg-xxxxx"
+- name: Terminate instances
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  vars:
+    region: us-west-2
+  tasks:
+    - name: Delete instances
+      ec2:
+        state: absent
+        instance_ids: '{{ instance_ids }}'
+        region: '{{ region }}'
+
+    - name: "Delete group by its id"
+      ec2_group:
+        state: absent
+        group_id: "{{ group_id }}"    
+        region: '{{ region }}'

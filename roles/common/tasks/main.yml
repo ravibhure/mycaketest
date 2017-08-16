@@ -1,0 +1,24 @@
+---
+- name: Add authorized key from master system
+  authorized_key:
+    user: "{{user_name}}"
+    key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+    state: present
+  no_log: true
+
+- name: Install base dependencies
+  apt: name={{ item }} state=present update_cache=yes cache_valid_time=3600
+  with_items:
+    - build-essential
+    - libssl-dev
+    - python-dev
+    - python-setuptools
+    - vim
+    - sudo
+    - curl
+    - apt-transport-https
+    - ca-certificates
+    - python-pip
+    - python-boto
+    - jq
+  tags: base

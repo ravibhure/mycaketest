@@ -1,0 +1,26 @@
+---
+- name: install docker
+  command: apt-key adv --keyserver {{repo_keyserver}} --recv-keys {{repo_key}}
+
+- name: add deb repo
+  command: touch /etc/apt/sources.list.d/docker.list
+
+- lineinfile: dest="/etc/apt/sources.list.d/docker.list" line="{{repo_url}}"
+
+- name: apt update
+  apt: update_cache=yes
+
+- apt: name=docker-engine state=present
+
+- name: add user mod
+  command: usermod -aG docker {{remote_user}}
+
+- name: add user mod
+  command: usermod -aG docker {{action_user}}
+
+# Install python package.
+- pip:
+    name: docker-py
+
+- pip:
+    name: docker-compose
