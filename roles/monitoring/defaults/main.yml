@@ -2,5 +2,5 @@
 repo_url: deb https://apt.dockerproject.org/repo ubuntu-trusty main
 repo_keyserver: hkp://p80.pool.sks-keyservers.net
 repo_key: 58118E89F3A912897C070ADBF76221572C52609D
-remote_user: root
+admin_user: root
 action_user: ubuntu

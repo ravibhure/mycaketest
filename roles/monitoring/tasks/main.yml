@@ -1,0 +1,14 @@
+---
+# Example checkout a github repo and use refspec to fetch all pull requests
+- name: get monitoring solution
+  git:
+    repo: https://github.com/ravibhure/dockprom.git
+    dest: /tmp/monitoring
+
+- name: start monitoring
+  shell: "docker-compose up -d"
+  args:
+    chdir: /tmp/monitoring
+
+- name: "Wait for services to start"
+  pause: minutes=1

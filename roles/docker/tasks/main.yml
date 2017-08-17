@@ -10,10 +10,10 @@
 - name: apt update
   apt: update_cache=yes
 
-- apt: name=docker-engine state=present
+- apt: name=docker-engine=1.12.6-0~ubuntu-trusty state=present
 
 - name: add user mod
-  command: usermod -aG docker {{remote_user}}
+  command: usermod -aG docker {{admin_user}}
 
 - name: add user mod
   command: usermod -aG docker {{action_user}}
@@ -24,3 +24,6 @@
 
 - pip:
     name: docker-compose
+
+- name: update python docker
+  shell: "pip uninstall docker-py; pip uninstall docker; pip install docker"

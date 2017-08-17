@@ -17,8 +17,16 @@ variable "key_path" {
   default = "~/.ssh/ravi.pem"
 }
 
+variable "vpc_id" {
+  default = "vpc-cc79c8aa"
+}
+
+variable "subnet_id" {
+  default = "subnet-af960af4"
+}
+
 variable "ec2_ami" {
-  default = "ami-edf6758d"
+  default = "ami-d94f5aa0"
 }
 
 variable "instance_type" {
@@ -34,8 +42,8 @@ provider "aws" {
 
 # SECURITY GROUP
 # Our default security group to access
-resource "aws_security_group" "docker" {
-  name = "docker"
+resource "aws_security_group" "webserver" {
+  name = "webserver"
   description = "Used in LAMP"
 
   # SSH access from anywhere
@@ -53,6 +61,13 @@ resource "aws_security_group" "docker" {
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  ingress {
+    from_port = 8080
+    to_port = 8080
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
 
   # outbound internet access
   egress {
@@ -61,14 +76,21 @@ resource "aws_security_group" "docker" {
     protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  vpc_id = "${var.vpc_id}"
+  tags {
+    Name        = "webserver"
+  }
+
 }
 
 # LAMP SERVER
-resource "aws_instance" "docker" {
+resource "aws_instance" "webserver" {
   ami = "${var.ec2_ami}"
   instance_type = "${var.instance_type}"
-  vpc_security_group_ids = ["${aws_security_group.docker.id}"]
+  vpc_security_group_ids = ["${aws_security_group.webserver.id}"]
   associate_public_ip_address = true
+  subnet_id = "${var.subnet_id}"
   count = 1
   connection {
     user = "ubuntu"
@@ -76,11 +98,23 @@ resource "aws_instance" "docker" {
   }
   key_name = "${var.key_name}"
   tags {
-    Name = "dockerhost"
+    Name = "webserverhost"
   }
+}
+
+resource "null_resource" "wordpress" {
+  depends_on = ["aws_instance.webserver"]
+
+  provisioner "local-exec" {
+    command = "echo \"${aws_instance.webserver.public_ip} ansible_user=ubuntu\" > terraform_hosts"
+  }
+  provisioner "local-exec" {
+    command = "ansible-playbook -i terraform_hosts wordpress.yml"
+  }
+
 }
 
 # OUTPUT
 output "lamp_url" {
-  value = "http://${aws_instance.docker.public_ip}:80"
+  value = "http://${aws_instance.webserver.public_ip}:80"
 }

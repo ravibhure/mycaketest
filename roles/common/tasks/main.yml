@@ -1,10 +1,9 @@
 ---
-- name: Add authorized key from master system
-  authorized_key:
-    user: "{{user_name}}"
-    key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
-    state: present
-  no_log: true
+- name: apt update
+  apt: update_cache=yes
+
+- name: Install linux images
+  shell: "apt-get -y install linux-image-extra-$(uname -r) linux-image-extra-virtual"
 
 - name: Install base dependencies
   apt: name={{ item }} state=present update_cache=yes cache_valid_time=3600
@@ -16,6 +15,7 @@
     - vim
     - sudo
     - curl
+    - git
     - apt-transport-https
     - ca-certificates
     - python-pip

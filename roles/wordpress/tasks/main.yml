@@ -1,0 +1,17 @@
+---
+- name: Create wordpress folder.
+  file:
+    path: /tmp/wordpress
+    mode: 0755
+    state: directory
+
+- name: Copy wordpress config
+  action: copy src=docker-compose-wordpress.yml dest=/tmp/wordpress/docker-compose.yml mode=0644
+
+- name: start wordpress container
+  shell: "docker-compose up -d"
+  args:
+    chdir: /tmp/wordpress
+
+- name: "Wait for services to start"
+  pause: minutes=1

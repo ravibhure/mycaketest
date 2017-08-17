@@ -1,0 +1,18 @@
+wordpress_db:
+  image: mariadb
+  ports:
+    - 3306:3306
+  environment:
+    MYSQL_ROOT_PASSWORD: ChangeMe
+wordpress:
+  image: wordpress
+  links:
+    - wordpress_db:mysql
+  ports:
+    - 8888:80
+reverseproxy:
+   image: ravibhure/reverseproxy
+   ports:
+      - 80:80
+      - 8080:8080
+   restart: always

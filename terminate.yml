@@ -1,5 +1,5 @@
 ---
-# ansible-playbook terminate.yml -e "instance_ids=i-xxxxxx group_id=sg-xxxxx"
+# ansible-playbook terminate.yml -e "instance_ids=i-xxxxxx my_aws_access_key=xxxxxxxxxx my_aws_secret_key=xxxxxxxxxxxxxxxxxxx"
 - name: Terminate instances
   hosts: localhost
   gather_facts: false
@@ -10,11 +10,16 @@
     - name: Delete instances
       ec2:
         state: absent
+        aws_access_key: "{{ my_aws_access_key }}"
+        aws_secret_key: "{{ my_aws_secret_key }}"
         instance_ids: '{{ instance_ids }}'
         region: '{{ region }}'
 
     - name: "Delete group by its id"
       ec2_group:
         state: absent
-        group_id: "{{ group_id }}"    
+        aws_access_key: "{{ my_aws_access_key }}"
+        aws_secret_key: "{{ my_aws_secret_key }}"
+        name: "webserver"
+        description: ""
         region: '{{ region }}'

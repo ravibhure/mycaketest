@@ -2,3 +2,6 @@
 *terraform.tfvars
 *secret*
 *.retry
+*test.yml*
+*.idea*
+*terraform_hosts*

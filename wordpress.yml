@@ -1,0 +1,11 @@
+---
+# ansible-playbook -i terraform_hosts wordpress.yml
+  - hosts: all              # define 'all' as our action target
+    become: yes
+    become_method: sudo
+    serial: 1          #define the action will be done one by one
+    roles:
+    - role: common     #define 'common' role should be apply to hosts
+    - role: docker     #define 'docker' role should be apply to hosts
+    - role: monitoring       #define 'monitoring' role should be apply to hosts
+    - role: wordpress       #define 'lamp' role should be apply to hosts

@@ -1,7 +1,7 @@
 Role Name
 ========
 
-docker lamp
+docker wordpress
 
 License
 -------
