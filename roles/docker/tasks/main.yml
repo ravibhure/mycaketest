@@ -19,11 +19,11 @@
   command: usermod -aG docker {{action_user}}
 
 # Install python package.
+#- pip:
+#    name: docker-py
+
 - pip:
-    name: docker-py
+    name: docker
 
 - pip:
     name: docker-compose
-
-- name: update python docker
-  shell: "pip uninstall docker-py; pip uninstall docker; pip install docker"
