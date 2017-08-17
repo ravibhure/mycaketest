@@ -10,9 +10,3 @@ wordpress:
     - wordpress_db:mysql
   ports:
     - 8888:80
-reverseproxy:
-   image: ravibhure/reverseproxy
-   ports:
-      - 80:80
-      - 8080:8080
-   restart: always

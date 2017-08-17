@@ -68,6 +68,13 @@ resource "aws_security_group" "webserver" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Prometheus access from anywhere
+  ingress {
+    from_port = 9100
+    to_port = 9100
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   # outbound internet access
   egress {
@@ -99,6 +106,7 @@ resource "aws_instance" "webserver" {
   key_name = "${var.key_name}"
   tags {
     Name = "webserverhost"
+    Monitoring = "On"
   }
 }
 
@@ -115,6 +123,9 @@ resource "null_resource" "wordpress" {
 }
 
 # OUTPUT
-output "lamp_url" {
+output "wordpress_url" {
   value = "http://${aws_instance.webserver.public_ip}:80"
+}
+output "grafana_url" {
+  value = "http://${aws_instance.webserver.public_ip}:8080"
 }

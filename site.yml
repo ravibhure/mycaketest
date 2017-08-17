@@ -42,6 +42,10 @@
               from_port: 8080
               to_port: 8080
               cidr_ip: 0.0.0.0/0
+            - proto: tcp
+              from_port: 9100
+              to_port: 9100
+              cidr_ip: 0.0.0.0/0
           rules_egress:
             - proto: all
               cidr_ip: 0.0.0.0/0
@@ -62,6 +66,7 @@
           assign_public_ip: yes
           instance_tags:
             Name: "{{tag_name}}"
+            Monitoring: 'On'
         register: ec2
 
       - name: Add the newly created EC2 instance(s) to the local host group (located inside the directory)

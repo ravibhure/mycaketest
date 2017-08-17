@@ -13,5 +13,26 @@
   args:
     chdir: /tmp/wordpress
 
-- name: "Wait for services to start"
-  pause: minutes=1
+- name: Nginx setup
+  apt: pkg=nginx state=installed
+
+- name: Create includes folder.
+  file:
+    path: /etc/nginx/includes
+    mode: 0755
+    state: directory
+  register: incl_dir
+
+- name: Copy proxy config
+  action: copy src=proxy.conf dest=/etc/nginx/includes/proxy.conf mode=0644
+  when: incl_dir.changed
+
+- name: Copy default config
+  action: copy src=nginx.conf dest=/etc/nginx/sites-available/default mode=0644
+  register: nginx_conf
+
+- name: Start nginx
+  service:
+    name: nginx
+    state: restarted
+  when: nginx_conf.changed
