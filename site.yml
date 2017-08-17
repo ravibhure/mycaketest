@@ -6,16 +6,9 @@
     gather_facts: False
     tags: provisioning
     # Necessary Variables for creating/provisioning the EC2 Instance
-    vars:
-      instance_type: t2.micro
-      security_group: webserver # Change the security group name here
-      image: ami-d94f5aa0 # Change the AMI, from which you want to launch the server
-      vpc_id: vpc-cc79c8aa
-      vpc_subnet_id: subnet-af960af4
-      region: us-west-2 # Change the Region
-      keypair: ravi # Change the keypair name
-      count: 1
-      tag_name: webserver
+
+    vars_files:
+    - vars.yml
 
     # Task that will be used to Launch/Create an EC2 Instance
     tasks:
@@ -49,6 +42,7 @@
           rules_egress:
             - proto: all
               cidr_ip: 0.0.0.0/0
+        register: web_sg
 
       - name: Launch the new EC2 Instance
         local_action:
@@ -76,15 +70,6 @@
           groups: "webserver"
         with_items: "{{ ec2.instances }}"
 
-      - name: Add the newly created EC2 instance(s) to the local host group (located inside the directory)
-        local_action:
-          module: lineinfile 
-          dest: "./hosts" 
-          regexp: "{{ item.public_ip }}"
-          insertafter: "[webserver]"
-          line: "{{ item.public_ip }}"
-          with_items: "{{ ec2.instances }}"
-
       - name: Add tag to Instance(s)
         local_action: 
           module: ec2_tag
@@ -97,14 +82,13 @@
             Name: "{{ security_group }}"
 
       - name: Wait for SSH to come up
-        local_action:
-          module: wait_for 
+        wait_for:
           host: "{{ item.public_ip }}"
           port: 22 
           delay: 20
           timeout: 320
           state: started
-          with_items: "{{ ec2.instances }}"
+        with_items: "{{ ec2.instances }}"
 
   - hosts: webserver              # define 'docker' as our action target
     become: yes
@@ -112,6 +96,6 @@
     serial: 1          #define the action will be done one by one
     roles:
     - role: common     #define 'common' role should be apply to hosts
-    - role: docker     #define 'docker' role should be apply to hosts
-    - role: monitoring       #define 'monitoring' role should be apply to hosts
-    - role: wordpress       #define 'monitoring' role should be apply to hosts
+    #- role: docker     #define 'docker' role should be apply to hosts
+    #- role: monitoring       #define 'monitoring' role should be apply to hosts
+    #- role: wordpress       #define 'monitoring' role should be apply to hosts

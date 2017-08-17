@@ -15,7 +15,9 @@ terraform (for terraform based deployment)
 
 Update `ansible.cfg` with your `private_key_file` location
 
-Provide your aws access secret in environment variable
+Update/Edit `vars.yml` with your aws environment details
+
+Provide your aws access secret in `vars.yml` or command extra variable
 
 ```
 ansible-playbook site.yml -e "my_aws_access_key=xxxxxxxxxxxxxxxxxxxx my_aws_secret_key=xxxxxxxxxxxxxxxxxxx"
