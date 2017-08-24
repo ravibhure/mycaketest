@@ -7,7 +7,7 @@ source env.sh
 # Run ansible
 cd ${PWD}/..
 
-ansible-playbook ANSIBLE_CONFIG=${PWD} site.yml \
+ansible-playbook site.yml \
 -e "aws_env=${AWS_ENV}" \
 -e "aws_access_key=${CAKE_AWS_ACCESS_KEY_ID}" \
 -e "aws_secret_key=${CAKE_AWS_SECRET_ACCESS_KEY}" \
