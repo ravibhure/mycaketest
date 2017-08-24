@@ -5,3 +5,4 @@
 *test.yml*
 *.idea*
 *terraform_hosts*
+*env.sh

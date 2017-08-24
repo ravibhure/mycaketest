@@ -1,14 +1,16 @@
 ---
-# ansible-playbook site.yml -e "my_aws_access_key=xxxxxxxxxxxxxxxxxxxx my_aws_secret_key=xxxxxxxxxxxxxxxxxxx"
+# ansible-playbook site.yml -e "aws_access_key=xxxxxxxxxxxxxxxxxxxx aws_secret_key=xxxxxxxxxxxxxxxxxxx"
   - name: Provision an EC2 Instance
     hosts: localhost
     connection: local
     gather_facts: False
     tags: provisioning
-    # Necessary Variables for creating/provisioning the EC2 Instance
 
-    vars_files:
-    - vars.yml
+    # Necessary Variables for creating/provisioning the EC2 Instance
+    vars:
+      security_group: webserver
+      tag_name: webserver
+      count: 1
 
     # Task that will be used to Launch/Create an EC2 Instance
     tasks:
@@ -18,10 +20,10 @@
           module: ec2_group
           name: "{{ security_group }}"
           description: Security Group for webserver Servers
-          region: "{{ region }}"
-          vpc_id: "{{ vpc_id }}"
-          aws_access_key: "{{ my_aws_access_key }}"
-          aws_secret_key: "{{ my_aws_secret_key }}"
+          region: "{{ aws_region }}"
+          vpc_id: "{{ aws_vpc_id }}"
+          aws_access_key: "{{ aws_access_key }}"
+          aws_secret_key: "{{ aws_secret_key }}"
           rules:
             - proto: tcp
               from_port: 22
@@ -48,22 +50,23 @@
         local_action:
           module: ec2
           group: "{{ security_group }}"
-          aws_access_key: "{{ my_aws_access_key }}"
-          aws_secret_key: "{{ my_aws_secret_key }}"
-          instance_type: "{{ instance_type}}"
-          image: "{{ image }}"
-          vpc_subnet_id: "{{ vpc_subnet_id }}"
-          wait: true
-          region: "{{ region }}"
-          keypair: "{{ keypair }}"
+          aws_access_key: "{{ aws_access_key }}"
+          aws_secret_key: "{{ aws_secret_key }}"
+          instance_type: "{{ aws_instance_type }}"
+          image: "{{ aws_ec2_ami }}"
+          vpc_subnet_id: "{{ aws_vpc_subnet_id }}"
+          wait: yes
+          region: "{{ aws_region }}"
+          keypair: "{{ aws_key_name }}"
           count: "{{count}}"
           assign_public_ip: yes
           instance_tags:
             Name: "{{tag_name}}"
-            Monitoring: 'On'
+            Monitoring: "On"
+            Environment: "{{aws_env}}"
         register: ec2
 
-      - name: Add the newly created EC2 instance(s) to the local host group (located inside the directory)
+      - name: Add the newly created EC2 instance(s) to ansible inventory
         add_host:
           hostname: "{{ item.public_ip }}"
           ansible_user: "ubuntu"
@@ -73,13 +76,14 @@
       - name: Add tag to Instance(s)
         local_action: 
           module: ec2_tag
-          aws_access_key: "{{ my_aws_access_key }}"
-          aws_secret_key: "{{ my_aws_secret_key }}"
+          aws_access_key: "{{ aws_access_key }}"
+          aws_secret_key: "{{ aws_secret_key }}"
           resource: "{{web_sg.group_id}}"
-          region: "{{ region }}"
+          region: "{{ aws_region }}"
           state: present
           tags:
             Name: "{{ security_group }}"
+            Environment: "{{aws_env}}"
 
       - name: Wait for SSH to come up
         wait_for:
@@ -90,7 +94,8 @@
           state: started
         with_items: "{{ ec2.instances }}"
 
-  - hosts: webserver              # define 'docker' as our action target
+  - name: Setup wordpress and monitoring on EC2 Instance
+    hosts: webserver              # define 'docker' as our action target
     become: yes
     become_method: sudo
     serial: 1          #define the action will be done one by one

@@ -18,12 +18,7 @@
 - name: add user mod
   command: usermod -aG docker {{action_user}}
 
-# Install python package.
-#- pip:
-#    name: docker-py
-
-- pip:
-    name: docker
-
-- pip:
-    name: docker-compose
+- pip: name={{ item }}
+  with_items:
+    - docker
+    - docker-compose
