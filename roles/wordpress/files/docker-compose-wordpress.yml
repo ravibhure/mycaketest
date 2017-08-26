@@ -1,12 +1,63 @@
-wordpress_db:
-  image: mariadb
-  ports:
-    - 3306:3306
-  environment:
-    MYSQL_ROOT_PASSWORD: ChangeMe
-wordpress:
-  image: wordpress
-  links:
-    - wordpress_db:mysql
-  ports:
-    - 8888:80
+version: '2'
+
+services:
+  wordpress_db:
+    depends_on:
+      - nginx-proxy
+    image: mariadb
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ChangeMe
+      MYSQL_USER: wpuser
+      MYSQL_PASSWORD: wpsecret
+      MYSQL_DATABASE: wpdb
+    restart: always
+    networks:
+      - app-net
+    expose:
+      - 3306
+    volumes:
+      - wordpress_data:/var/lib/mysql
+    labels:
+      org.label-schema.group: "wordpress"
+
+  wordpress:
+    depends_on:
+      - nginx-proxy
+    image: wordpress
+    container_name: wordpress
+    links:
+      - wordpress_db:mysql
+    restart: always
+    networks:
+      - app-net
+    expose:
+      - 80
+    environment:
+      VIRTUAL_HOST: blog.cakesolution.co.uk
+      WORDPRESS_DB_HOST: wordpress_db
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: wpsecret
+      WORDPRESS_DB_NAME: wpdb
+    labels:
+      org.label-schema.group: "wordpress"
+
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    restart: always
+    networks:
+      - app-net
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    labels:
+      org.label-schema.group: "wordpress"
+
+networks:
+  app-net:
+    driver: bridge
+
+volumes:
+    wordpress_data: {}
