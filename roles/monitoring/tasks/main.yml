@@ -5,6 +5,9 @@
     repo: https://github.com/ravibhure/dockprom.git
     dest: /tmp/monitoring
 
+- name: Copy docker compose
+  template: src=docker-compose-monitoring.yml.j2 dest=/tmp/monitoring/docker-compose.yml mode=0644
+
 - name: start monitoring
   shell: "docker-compose up -d"
   args:
