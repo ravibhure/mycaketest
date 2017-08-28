@@ -28,18 +28,18 @@ resource "aws_security_group" "webserver" {
   }
   # Prometheus UI access from anywhere
   ingress {
-    from_port = 8080
-    to_port = 8080
+    from_port = 8090
+    to_port = 8090
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Prometheus access from anywhere
+  # internal all
   ingress {
-    from_port = 9100
-    to_port = 9100
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    self = true
   }
 
   # outbound internet access
@@ -56,6 +56,26 @@ resource "aws_security_group" "webserver" {
     Environment = "${var.aws_env}"
   }
 
+}
+
+# MONITORING SERVER
+resource "aws_instance" "monitoring" {
+  ami = "${var.aws_ec2_ami}"
+  instance_type = "${var.aws_instance_type}"
+  vpc_security_group_ids = ["${aws_security_group.webserver.id}"]
+  associate_public_ip_address = true
+  subnet_id = "${var.aws_vpc_subnet_id}"
+  count = 1
+  connection {
+    user = "ubuntu"
+    key_file = "${var.aws_key_path}"
+  }
+  key_name = "${var.aws_key_name}"
+  tags {
+    Name = "monitoring"
+    Monitoring = "On"
+    Environment = "${var.aws_env}"
+  }
 }
 
 # LAMP SERVER
@@ -78,13 +98,21 @@ resource "aws_instance" "webserver" {
   }
 }
 
-resource "null_resource" "wordpress" {
-  depends_on = ["aws_instance.webserver"]
+resource "null_resource" "inventory" {
+  depends_on = ["aws_instance.monitoring","aws_instance.webserver"]
 
   provisioner "local-exec" {
-    command = "echo \"${aws_instance.webserver.public_ip} ansible_user=ubuntu\" > ${path.module}/terraform_hosts"
+    command = "echo \"[monitoring]\n${aws_instance.monitoring.public_ip} ansible_user=ubuntu\" > ${path.module}/terraform_hosts"
   }
   provisioner "local-exec" {
-    command = "ANSIBLE_CONFIG=${path.module}/.. ansible-playbook -i ${path.module}/terraform_hosts ${path.module}/../wordpress.yml"
+    command = "echo \"[webserver]\n${aws_instance.webserver.public_ip} ansible_user=ubuntu\" >> ${path.module}/terraform_hosts"
+  }
+}
+
+resource "null_resource" "setup_wordpress" {
+  depends_on = ["null_resource.inventory"]
+
+  provisioner "local-exec" {
+    command = "ANSIBLE_CONFIG=${path.module}/.. ansible-playbook -i ${path.module}/terraform_hosts ${path.module}/../wordpress.yml -e 'aws_access_key=${var.aws_access_key} aws_secret_key=${var.aws_secret_key}'"
   }
 }

@@ -5,10 +5,16 @@
     repo: https://github.com/ravibhure/dockprom.git
     dest: /tmp/monitoring
 
+- name: copy ec2 discovery
+  template: src=prometheus.yml.j2 dest=/tmp/monitoring/prometheus/prometheus.yml mode=0644
+
+- name: copy docker compose for monitoring
+  copy: src=docker-compose-monitoring.yml dest=/tmp/monitoring/docker-compose.yml mode=0644
+
 - name: start monitoring
   shell: "docker-compose up -d"
   args:
     chdir: /tmp/monitoring
 
 - name: "Wait for services to start"
-  pause: minutes=1
+  pause: seconds=30

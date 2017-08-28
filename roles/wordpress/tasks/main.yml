@@ -1,4 +1,6 @@
 ---
+- include: monitoring_agent.yml
+
 - name: Create wordpress folder.
   file:
     path: /tmp/wordpress
