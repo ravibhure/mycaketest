@@ -9,7 +9,7 @@
   template: src=prometheus.yml.j2 dest=/tmp/monitoring/prometheus/prometheus.yml mode=0644
 
 - name: copy docker compose for monitoring
-  copy: src=docker-compose-monitoring.yml dest=/tmp/monitoring/docker-compose.yml mode=0644
+  template: src=docker-compose-monitoring.yml.j2 dest=/tmp/monitoring/docker-compose.yml mode=0644
 
 - name: start monitoring
   shell: "docker-compose up -d"

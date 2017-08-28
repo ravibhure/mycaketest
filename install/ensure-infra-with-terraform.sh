@@ -9,6 +9,8 @@ cd ${PWD}/..
 
 terraform apply \
 -var="aws_env=${AWS_ENV}" \
+-var="blog_domain=${CAKE_BLOG_DOMAIN}" \
+-var="gf_admin_password=${GF_ADMIN_PASSWORD}" \
 -var="aws_access_key=${CAKE_AWS_ACCESS_KEY_ID}" \
 -var="aws_secret_key=${CAKE_AWS_SECRET_ACCESS_KEY}" \
 -var="aws_region=${CAKE_AWS_REGION}" \

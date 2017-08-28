@@ -34,7 +34,7 @@ services:
     expose:
       - 80
     environment:
-      VIRTUAL_HOST: blog.cakesolution.co.uk
+      VIRTUAL_HOST: {{ blog_domain }}
       WORDPRESS_DB_HOST: wordpress_db
       WORDPRESS_DB_USER: wpuser
       WORDPRESS_DB_PASSWORD: wpsecret
