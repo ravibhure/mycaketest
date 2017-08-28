@@ -1,5 +1,5 @@
 ---
-# ansible-playbook site.yml -e "aws_access_key=xxxxxxxxxxxxxxxxxxxx aws_secret_key=xxxxxxxxxxxxxxxxxxx"
+# To run this playbook, change directory to `install` and run `bash ensure-infra-with-ansible.sh`
   - name: Provision an EC2 Instance
     hosts: localhost
     connection: local
@@ -9,7 +9,6 @@
     # Necessary Variables for creating/provisioning the EC2 Instance
     vars:
       security_group: webserver
-      tag_name: webserver
       count: 1
 
     # Task that will be used to Launch/Create an EC2 Instance
@@ -34,19 +33,19 @@
               to_port: 80
               cidr_ip: 0.0.0.0/0
             - proto: tcp
-              from_port: 8080
-              to_port: 8080
+              from_port: 8090
+              to_port: 8090
               cidr_ip: 0.0.0.0/0
-            - proto: tcp
-              from_port: 9100
-              to_port: 9100
-              cidr_ip: 0.0.0.0/0
+            - proto: "-1"
+              from_port: 0
+              to_port: 0
+              group_name: "{{ security_group }}"
           rules_egress:
             - proto: all
               cidr_ip: 0.0.0.0/0
         register: web_sg
 
-      - name: Launch the new EC2 Instance
+      - name: Launch the monitoring EC2 Instance
         local_action:
           module: ec2
           group: "{{ security_group }}"
@@ -61,19 +60,46 @@
           count: "{{count}}"
           assign_public_ip: yes
           instance_tags:
-            Name: "{{tag_name}}"
+            Name: "monitoring"
             Monitoring: "On"
             Environment: "{{aws_env}}"
-        register: ec2
+        register: ec2_mon
 
-      - name: Add the newly created EC2 instance(s) to ansible inventory
+      - name: Launch the wordpress EC2 Instance
+        local_action:
+          module: ec2
+          group: "{{ security_group }}"
+          aws_access_key: "{{ aws_access_key }}"
+          aws_secret_key: "{{ aws_secret_key }}"
+          instance_type: "{{ aws_instance_type }}"
+          image: "{{ aws_ec2_ami }}"
+          vpc_subnet_id: "{{ aws_vpc_subnet_id }}"
+          wait: yes
+          region: "{{ aws_region }}"
+          keypair: "{{ aws_key_name }}"
+          count: "{{count}}"
+          assign_public_ip: yes
+          instance_tags:
+            Name: "webserver"
+            Monitoring: "On"
+            Environment: "{{aws_env}}"
+        register: ec2_wp
+
+      - name: Add the newly created monitoring EC2 instance(s) to ansible inventory
+        add_host:
+          hostname: "{{ item.public_ip }}"
+          ansible_user: "ubuntu"
+          groups: "monitoring"
+        with_items: "{{ ec2_mon.instances }}"
+
+      - name: Add the newly created webserver EC2 instance(s) to ansible inventory
         add_host:
           hostname: "{{ item.public_ip }}"
           ansible_user: "ubuntu"
           groups: "webserver"
-        with_items: "{{ ec2.instances }}"
+        with_items: "{{ ec2_wp.instances }}"
 
-      - name: Add tag to Instance(s)
+      - name: Add tag to Security Group
         local_action: 
           module: ec2_tag
           aws_access_key: "{{ aws_access_key }}"
@@ -92,10 +118,12 @@
           delay: 20
           timeout: 320
           state: started
-        with_items: "{{ ec2.instances }}"
+        with_items:
+          - "{{ ec2_mon.instances }}"
+          - "{{ ec2_wp.instances }}"
 
-  - name: Setup wordpress and monitoring on EC2 Instance
-    hosts: webserver              # define 'docker' as our action target
+  - name: Setup monitoring on EC2 Instance
+    hosts: monitoring              # define 'docker' as our action target
     become: yes
     become_method: sudo
     serial: 1          #define the action will be done one by one
@@ -103,4 +131,13 @@
     - role: common     #define 'common' role should be apply to hosts
     - role: docker     #define 'docker' role should be apply to hosts
     - role: monitoring       #define 'monitoring' role should be apply to hosts
+
+  - name: Setup wordpress on EC2 Instance
+    hosts: webserver              # define 'docker' as our action target
+    become: yes
+    become_method: sudo
+    serial: 1          #define the action will be done one by one
+    roles:
+    - role: common     #define 'common' role should be apply to hosts
+    - role: docker     #define 'docker' role should be apply to hosts
     - role: wordpress       #define 'monitoring' role should be apply to hosts

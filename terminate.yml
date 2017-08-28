@@ -1,5 +1,5 @@
 ---
-# ansible-playbook terminate.yml -e "instance_ids=i-xxxxxx aws_access_key=xxxxxxxxxx aws_secret_key=xxxxxxxxxxxxxxxxxxx"
+# To run this playbook, change directory to `install` and run `bash ensure-infra-with-ansible.sh`
 - name: Terminate instances
   hosts: localhost
   gather_facts: false
@@ -14,9 +14,12 @@
         state: absent
         aws_access_key: "{{ aws_access_key }}"
         aws_secret_key: "{{ aws_secret_key }}"
-        instance_ids: '{{ instance_ids }}'
+        instance_ids: '{{ item }}'
         region: '{{ aws_region }}'
         wait: yes
+      with_items:
+        - "{{ wp_instance_ids }}"
+        - "{{ mon_instance_ids }}"
 
     - name: "Delete group by its id"
       ec2_group:
