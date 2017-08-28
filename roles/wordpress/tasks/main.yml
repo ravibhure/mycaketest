@@ -6,7 +6,7 @@
     state: directory
 
 - name: Copy wordpress config
-  action: copy src=docker-compose-wordpress.yml dest=/tmp/wordpress/docker-compose.yml mode=0644
+  template: src=docker-compose-wordpress.yml.j2 dest=/tmp/wordpress/docker-compose.yml mode=0644
 
 - name: start wordpress container
   shell: "docker-compose up -d"
