@@ -4,6 +4,7 @@
   git:
     repo: https://github.com/ravibhure/dockprom.git
     dest: /tmp/monitoring
+    force: yes
 
 - name: copy ec2 discovery
   template: src=prometheus.yml.j2 dest=/tmp/monitoring/prometheus/prometheus.yml mode=0644

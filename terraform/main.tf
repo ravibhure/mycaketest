@@ -113,6 +113,6 @@ resource "null_resource" "setup_wordpress" {
   depends_on = ["null_resource.inventory"]
 
   provisioner "local-exec" {
-    command = "ANSIBLE_CONFIG=${path.module}/.. ansible-playbook -i ${path.module}/terraform_hosts ${path.module}/../wordpress.yml -e 'aws_access_key=${var.aws_access_key} aws_secret_key=${var.aws_secret_key}'"
+    command = "ANSIBLE_CONFIG=${path.module}/.. ansible-playbook -i ${path.module}/terraform_hosts ${path.module}/../wordpress.yml -e 'aws_access_key=${var.aws_access_key} aws_secret_key=${var.aws_secret_key} gf_admin_password=${var.gf_admin_password} blog_domain=${var.blog_domain}'"
   }
 }
