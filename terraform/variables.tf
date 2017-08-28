@@ -12,6 +12,16 @@ variable "aws_env" {
   default = "test"
 }
 
+variable "blog_domain" {
+  description = "Blog domain."
+  default = "blog.cakesolution.co.uk"
+}
+
+variable "gf_admin_password" {
+  description = "Grafana admin password."
+  default = "changeme"
+}
+
 variable "aws_key_name" {
   description = "Name of the SSH keypair to use in AWS."
   default = "ravi"

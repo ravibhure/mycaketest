@@ -85,6 +85,6 @@ resource "null_resource" "wordpress" {
     command = "echo \"${aws_instance.webserver.public_ip} ansible_user=ubuntu\" > ${path.module}/terraform_hosts"
   }
   provisioner "local-exec" {
-    command = "ANSIBLE_CONFIG=${path.module}/.. ansible-playbook -i ${path.module}/terraform_hosts ${path.module}/../wordpress.yml"
+    command = "ANSIBLE_CONFIG=${path.module}/.. ansible-playbook -i ${path.module}/terraform_hosts ${path.module}/../wordpress.yml -e 'gf_admin_password=${var.gf_admin_password} blog_domain=${var.blog_domain}'"
   }
 }
